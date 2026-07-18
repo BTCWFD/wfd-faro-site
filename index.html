@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WFD Faro — un faro para tus proyectos dispersos</title>
+<style>
+  :root {
+    --night: #12161d;
+    --night-deep: #090b0f;
+    --panel: #191e27;
+    --panel-line: #2a3140;
+    --fog: #aab2c2;
+    --fog-dim: #6b7488;
+    --foam: #ede9e0;
+    --beam: #fce7b8;
+    --beam-dim: #8a7952;
+    --clay: #da7756;
+    --clay-bright: #ea9273;
+    --good: #7fb894;
+    --font-display: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+    --font-body: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--night);
+    color: var(--foam);
+    font-family: var(--font-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  a { color: inherit; }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--beam-dim);
+  }
+
+  /* ---------- NAV ---------- */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(18, 22, 29, 0.86);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--panel-line);
+  }
+  .nav .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+  .brand svg { display: block; }
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    font-size: 14px;
+    color: var(--fog);
+  }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--foam); }
+  .nav-cta {
+    font-family: var(--font-display);
+    font-size: 13px;
+    background: var(--clay);
+    color: var(--night-deep);
+    padding: 9px 16px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .nav-cta:hover { background: var(--clay-bright); }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 110px 0 100px;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -120px, rgba(252, 231, 184, 0.10), transparent 60%),
+      var(--night);
+    border-bottom: 1px solid var(--panel-line);
+  }
+  .beam-sweep {
+    position: absolute;
+    top: -260px;
+    left: 50%;
+    width: 1600px;
+    height: 900px;
+    margin-left: -800px;
+    background: conic-gradient(from 78deg at 50% 0%,
+      transparent 0deg,
+      rgba(252, 231, 184, 0.16) 8deg,
+      rgba(252, 231, 184, 0.02) 20deg,
+      transparent 34deg,
+      transparent 326deg,
+      rgba(252, 231, 184, 0.02) 340deg,
+      rgba(252, 231, 184, 0.16) 352deg,
+      transparent 360deg
+    );
+    animation: sweep 9s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes sweep {
+    from { transform: rotate(-14deg); }
+    to { transform: rotate(14deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .beam-sweep { animation: none; transform: rotate(0deg); }
+  }
+
+  .hero-inner {
+    position: relative;
+    text-align: center;
+  }
+  .hero-mark { margin: 0 auto 28px; width: 56px; height: 56px; }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(34px, 5.4vw, 56px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--beam);
+  }
+  .hero p.lede {
+    max-width: 560px;
+    margin: 22px auto 0;
+    font-size: 18px;
+    color: var(--fog);
+  }
+  .hero-ctas {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+  .btn-primary, .btn-ghost {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 13px 22px;
+    border-radius: 3px;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--clay); color: var(--night-deep); }
+  .btn-primary:hover { background: var(--clay-bright); }
+  .btn-ghost { border: 1px solid var(--panel-line); color: var(--foam); }
+  .btn-ghost:hover { border-color: var(--fog-dim); }
+
+  .hero-meta {
+    margin-top: 18px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    color: var(--fog-dim);
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- LOG STRIP ---------- */
+  .log-strip {
+    border-bottom: 1px solid var(--panel-line);
+    background: var(--night-deep);
+  }
+  .log-strip .wrap {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .log-item {
+    padding: 22px 20px;
+    border-left: 1px solid var(--panel-line);
+    text-align: center;
+  }
+  .log-item:first-child { border-left: none; }
+  .log-item .n {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--beam);
+    font-variant-numeric: tabular-nums;
+  }
+  .log-item .l {
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: var(--fog-dim);
+  }
+
+  /* ---------- SECTION SHARED ---------- */
+  section { padding: 96px 0; }
+  .section-head { max-width: 620px; margin-bottom: 52px; }
+  .section-head h2 {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 3.4vw, 32px);
+    font-weight: 700;
+  }
+  .section-head p { margin-top: 12px; color: var(--fog); font-size: 15.5px; }
+
+  /* ---------- PROBLEM ---------- */
+  .problem { background: var(--panel); border-bottom: 1px solid var(--panel-line); }
+  .scatter {
+    position: relative;
+    height: 220px;
+    margin-bottom: 8px;
+  }
+  .chip {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 12px;
+    color: var(--fog);
+    background: var(--night);
+    border: 1px solid var(--panel-line);
+    padding: 7px 12px;
+    border-radius: 3px;
+    opacity: 0.75;
+  }
+  .chip.warn { border-color: rgba(218, 119, 86, 0.4); color: var(--clay-bright); }
+
+  /* ---------- FEATURES ---------- */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--panel-line);
+    border: 1px solid var(--panel-line);
+  }
+  .feature {
+    background: var(--night);
+    padding: 28px 24px;
+  }
+  .feature .glyph {
+    width: 28px; height: 28px;
+    color: var(--beam);
+    margin-bottom: 16px;
+  }
+  .feature h3 {
+    font-size: 15.5px;
+    font-weight: 700;
+    font-family: var(--font-body);
+  }
+  .feature p {
+    margin-top: 8px;
+    font-size: 13.5px;
+    color: var(--fog);
+  }
+
+  /* ---------- SPOTLIGHT (Antigravity) ---------- */
+  .spotlight {
+    background: linear-gradient(180deg, var(--panel), var(--night) 70%);
+    border-bottom: 1px solid var(--panel-line);
+  }
+  .spotlight-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .spotlight-copy .eyebrow { color: var(--good); }
+  .spotlight-copy h2 {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 700;
+  }
+  .spotlight-copy p { margin-top: 14px; color: var(--fog); font-size: 15px; }
+  .spotlight-panel {
+    background: var(--night-deep);
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 22px;
+    font-family: var(--font-display);
+    font-size: 12.5px;
+  }
+  .spotlight-panel .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--panel-line);
+    color: var(--fog);
+  }
+  .spotlight-panel .row:last-child { border-bottom: none; }
+  .spotlight-panel .row b { color: var(--foam); font-weight: 600; }
+  .pill-good { color: var(--good); }
+
+  /* ---------- MOCKUP CARD (illustrated, not a screenshot) ---------- */
+  .mock-app {
+    background: #f5f1eb;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--panel-line);
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+  }
+  .mock-titlebar {
+    background: #ece6dc;
+    padding: 9px 14px;
+    display: flex;
+    gap: 6px;
+  }
+  .mock-titlebar span { width: 9px; height: 9px; border-radius: 50%; background: #d8cfc0; }
+  .mock-body { padding: 20px; }
+  .mock-card {
+    background: #ffffff;
+    border: 1px solid #e4ddd0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .mock-card:last-child { margin-bottom: 0; }
+  .mock-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-family: var(--font-body);
+  }
+  .mock-card-head b { color: #2b2420; font-size: 14px; }
+  .mock-card-head .path { display: block; color: #a89f8f; font-size: 11px; margin-top: 2px; }
+  .mock-badge {
+    font-family: var(--font-display);
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: #f1e4da;
+    color: #b45532;
+  }
+  .mock-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .mock-tag {
+    font-size: 10.5px;
+    font-family: var(--font-display);
+    background: #f4f0e8;
+    color: #7a7566;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  /* ---------- PRICING ---------- */
+  .pricing { background: var(--panel); }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 8px;
+  }
+  .plan {
+    background: var(--night);
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 32px;
+  }
+  .plan.pro { border-color: var(--clay); position: relative; }
+  .plan-name { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fog-dim); }
+  .plan.pro .plan-name { color: var(--clay-bright); }
+  .plan-price {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .plan-price span { font-size: 15px; color: var(--fog-dim); font-weight: 400; }
+  .plan ul { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 11px; }
+  .plan li { font-size: 14px; color: var(--fog); padding-left: 20px; position: relative; }
+  .plan li::before {
+    content: "";
+    position: absolute; left: 0; top: 7px;
+    width: 8px; height: 8px;
+    background: var(--fog-dim);
+    clip-path: polygon(0 50%, 50% 0, 100% 50%, 50% 100%);
+  }
+  .plan.pro li::before { background: var(--clay); }
+  .plan .btn-ghost, .plan .btn-primary { margin-top: 28px; width: 100%; justify-content: center; }
+
+  /* ---------- FOOTER / CTA ---------- */
+  .final-cta {
+    text-align: center;
+    padding: 110px 0 90px;
+    position: relative;
+    overflow: hidden;
+  }
+  .final-cta h2 {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 700;
+  }
+  .final-cta p { margin-top: 14px; color: var(--fog); }
+  .final-cta .hero-ctas { margin-top: 32px; }
+
+  footer {
+    border-top: 1px solid var(--panel-line);
+    padding: 28px 0;
+  }
+  footer .wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+    color: var(--fog-dim);
+    font-family: var(--font-display);
+  }
+  footer a { text-decoration: none; }
+  footer a:hover { color: var(--fog); }
+
+  @media (max-width: 760px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .spotlight-grid { grid-template-columns: 1fr; gap: 32px; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .log-strip .wrap { grid-template-columns: repeat(2, 1fr); }
+    .log-item:nth-child(3) { border-left: none; }
+    .nav-links { display: none; }
+    .scatter { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M9 4h6v3h-6z" fill="#da7756"/>
+        <path d="M8 8h8l2 12H6z" fill="#da7756"/>
+        <rect x="4" y="19" width="16" height="2.4" rx="1" fill="#da7756"/>
+      </svg>
+      WFD FARO
+    </a>
+    <div class="nav-links">
+      <a href="#problema">El problema</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#antigravity">Antigravity</a>
+      <a href="#precio">Precio</a>
+    </div>
+    <a class="nav-cta" href="#precio">Descargar</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="beam-sweep"></div>
+  <div class="wrap hero-inner">
+    <svg class="hero-mark" viewBox="0 0 24 24" fill="none">
+      <path d="M9 4h6v3h-6z" fill="#da7756"/>
+      <path d="M8 8h8l2 12H6z" fill="#da7756"/>
+      <rect x="4" y="19" width="16" height="2.4" rx="1" fill="#da7756"/>
+      <path d="M3 6 L9.5 9.5 M21 6 L14.5 9.5" stroke="#fce7b8" stroke-width="1.4" stroke-linecap="round" opacity="0.8"/>
+    </svg>
+    <h1>Tenés 20 proyectos.<br />Uno solo <em>los ve a todos.</em></h1>
+    <p class="lede">
+      WFD Faro es el panel de escritorio para desarrolladores que perdieron la cuenta de cuántos
+      repos tienen abiertos. Salud de git, kanban, scripts, y el estado de tus agentes IA — todo
+      en una app, corriendo en tu máquina.
+    </p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="#precio">↓ Descargar para Windows</a>
+      <a class="btn-ghost" href="#funciones">Ver qué hace</a>
+    </div>
+    <div class="hero-meta">v0.1.0 · WINDOWS 10/11 · GRATIS PARA EMPEZAR</div>
+  </div>
+</header>
+
+<section class="log-strip">
+  <div class="wrap">
+    <div class="log-item"><div class="n">22</div><div class="l">proyectos en un workspace real de prueba</div></div>
+    <div class="log-item"><div class="n">1</div><div class="l">panel, no 20 terminales</div></div>
+    <div class="log-item"><div class="n">0</div><div class="l">servidores en la nube — corre local</div></div>
+    <div class="log-item"><div class="n">100%</div><div class="l">tuyo: tus notas no salen de tu disco</div></div>
+  </div>
+</section>
+
+<section class="problem" id="problema">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">El problema</span>
+      <h2>Cada proyecto vive en su propia cabeza</h2>
+      <p>
+        ¿Cuál tenía cambios sin commitear? ¿Cuál no tiene remoto y solo existe en esta máquina?
+        ¿Cuál te tenía un PR esperando hace tres semanas? Sin un panel central, esa información
+        vive dispersa en veinte terminales distintas — o en ninguna.
+      </p>
+    </div>
+    <div class="scatter">
+      <div class="chip warn" style="top:6px; left:2%;">nexequine — 20 sin commitear</div>
+      <div class="chip" style="top:64px; left:26%;">SPEACK3 — último commit hace 8 días</div>
+      <div class="chip warn" style="top:12px; left:52%;">pinata — sin remoto configurado</div>
+      <div class="chip" style="top:96px; left:6%;">vivarium — 2 PRs abiertos</div>
+      <div class="chip" style="top:140px; left:40%;">ICC — nombre duplicado ⚠</div>
+      <div class="chip warn" style="top:60px; left:74%;">antgr-observer — dormido 💤</div>
+      <div class="chip" style="top:150px; left:70%;">MILLONARIOS — standby</div>
+    </div>
+  </div>
+</section>
+
+<section id="funciones">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Lo que hace</span>
+      <h2>Todo lo que preguntás en un daily, sin preguntar</h2>
+      <p>Escanea tu carpeta de proyectos y arma el estado real de cada uno — sin que tengas que abrir nada.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M6 9v6M9 6h4a3 3 0 0 1 3 3v0M9 18h4a3 3 0 0 0 3-3v0"/></svg>
+        <h3>Salud de git real</h3>
+        <p>Rama, cambios sin commitear, commits sin pushear, repos sin remoto — de un vistazo, sin git status manual.</p>
+      </div>
+      <div class="feature">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>
+        <h3>Kanban con arrastrar y soltar</h3>
+        <p>Activo, Standby, Descarte — organizá tu workspace igual que organizás tareas, no como una lista de carpetas.</p>
+      </div>
+      <div class="feature">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l14 9-14 9V3z"/></svg>
+        <h3>Ejecutá scripts con un clic</h3>
+        <p>Detecta los .bat y .ps1 de cada proyecto y los corre desde el panel — sin salir a buscar la terminal correcta.</p>
+      </div>
+      <div class="feature">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <h3>Buscá adentro de todo</h3>
+        <p>Grep de contenido sobre los 20+ proyectos a la vez. Encontrá esa función sin recordar en qué repo la escribiste.</p>
+      </div>
+      <div class="feature">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+        <h3>Auditoría y salud por proyecto</h3>
+        <p>Vulnerabilidades de dependencias, duplicados, secretos sin proteger — un puntaje de salud, no veinte revisiones manuales.</p>
+      </div>
+      <div class="feature">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14l-4-3H6a2 2 0 0 1-2-2z"/></svg>
+        <h3>PRs sin abrir GitHub</h3>
+        <p>Ve cuántos pull requests siguen abiertos en cada repo, directo desde la tarjeta del proyecto.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="spotlight" id="antigravity">
+  <div class="wrap">
+    <div class="spotlight-grid">
+      <div class="spotlight-copy">
+        <span class="eyebrow">Para quien corre agentes IA</span>
+        <h2>Si tenés Antigravity corriendo, WFD Faro lo ve</h2>
+        <p>
+          Cuando trabajás con enjambres de subagentes en el IDE Antigravity, es fácil perder de vista
+          cuántos hay activos y cómo están. WFD Faro se conecta al monitor y te muestra la salud del
+          enjambre — agentes activos, alertas, estado — al lado del resto de tus proyectos, sin abrir
+          otra ventana.
+        </p>
+      </div>
+      <div class="spotlight-panel">
+        <div class="row"><span>Salud del enjambre</span><b class="pill-good">98%</b></div>
+        <div class="row"><span>Agentes activos</span><b>1</b></div>
+        <div class="row"><span>Conversaciones históricas</span><b>503</b></div>
+        <div class="row"><span>Alertas</span><b class="pill-good">ninguna</b></div>
+        <div class="row"><span>Rol</span><b>Sentinel / Orchestrator</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mockup">
+  <div class="wrap" style="max-width: 720px;">
+    <div class="mock-app">
+      <div class="mock-titlebar"><span></span><span></span><span></span></div>
+      <div class="mock-body">
+        <div class="mock-card">
+          <div class="mock-card-head">
+            <div><b>nexequine</b><span class="path">_activos\nexequine</span></div>
+            <span class="mock-badge">Activo</span>
+          </div>
+          <div class="mock-tags">
+            <span class="mock-tag">node</span>
+            <span class="mock-tag">master</span>
+            <span class="mock-tag">20 sin commitear</span>
+            <span class="mock-tag">salud 65</span>
+          </div>
+        </div>
+        <div class="mock-card">
+          <div class="mock-card-head">
+            <div><b>vivarium</b><span class="path">_activos\vivarium</span></div>
+            <span class="mock-badge">Activo</span>
+          </div>
+          <div class="mock-tags">
+            <span class="mock-tag">node</span>
+            <span class="mock-tag">main</span>
+            <span class="mock-tag">salud 100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="precio">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Precio</span>
+      <h2>Empezá gratis. Pagá cuando te ahorre tiempo de verdad.</h2>
+    </div>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0</div>
+        <ul>
+          <li>Proyectos ilimitados</li>
+          <li>Salud de git (rama, commits, remoto)</li>
+          <li>Vista kanban y timeline</li>
+          <li>Notas, tags y categorías</li>
+          <li>Exportar reporte .md / .html</li>
+        </ul>
+        <a class="btn-ghost" href="#" style="justify-content:center;">Descargar Free</a>
+      </div>
+      <div class="plan pro">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$6<span>/mes</span></div>
+        <ul>
+          <li>Todo lo de Free</li>
+          <li>Ejecutar scripts con un clic</li>
+          <li>Mover proyectos físicamente entre carpetas</li>
+          <li>Auditoría de dependencias</li>
+          <li>Búsqueda de contenido en todos los repos</li>
+          <li>Integración con Antigravity Monitor</li>
+        </ul>
+        <a class="btn-primary" href="#" style="justify-content:center;">Activar Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="beam-sweep" style="opacity:0.5;"></div>
+  <div class="wrap">
+    <h2>Dejá de adivinar en qué quedó cada proyecto.</h2>
+    <p>Windows 10/11 · instalá o llevá el .exe portable · tus datos no salen de tu disco.</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="#precio">↓ Descargar WFD Faro</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>WFD FARO — 2026</span>
+    <a href="#top">VOLVER ARRIBA ↑</a>
+  </div>
+</footer>
+
+</body>
+</html>
